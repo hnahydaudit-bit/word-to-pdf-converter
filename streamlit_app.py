@@ -26,44 +26,46 @@ st.markdown(
     }
 
     .block-container {
-        padding-top: 1rem;
+        padding-top: 0.6rem;
         max-width: 850px;
     }
 
-    /* HERO CARD */
+    /* SMALL HERO CARD */
     .hero-box {
         background: white;
-        border-radius: 16px;
-        padding: 1.3rem 1.8rem 1.2rem 1.8rem;
-        box-shadow: 0 12px 26px rgba(0,0,0,0.07);
+        border-radius: 10px;
+        padding: 0.6rem 1.2rem;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
         text-align: center;
-        margin-bottom: 1.6rem;
+        margin-bottom: 1rem;
     }
 
     .hero-title {
-        font-size: 1.7rem;
+        font-size: 1.35rem;
         font-weight: 600;
         color: #1a73e8;
-        margin-bottom: 0.25rem;
+        margin: 0;
+        line-height: 1.2;
     }
 
     .hero-subtitle {
         color: #5f6368;
-        font-size: 0.95rem;
-        line-height: 1.4;
+        font-size: 0.82rem;
+        margin-top: 0.2rem;
+        line-height: 1.3;
     }
 
     .stDownloadButton button {
         background: linear-gradient(135deg, #1a73e8, #4285f4);
         color: white;
-        border-radius: 12px;
-        padding: 0.75rem 1.9rem;
-        font-size: 1.05rem;
+        border-radius: 10px;
+        padding: 0.7rem 1.8rem;
+        font-size: 1rem;
         border: none;
     }
 
     .stDownloadButton button:hover {
-        box-shadow: 0 8px 18px rgba(26,115,232,0.35);
+        box-shadow: 0 6px 14px rgba(26,115,232,0.35);
     }
     </style>
     """,
@@ -120,7 +122,6 @@ if uploaded_files:
 
             pdf.build(elements)
             pdf_buffer.seek(0)
-
             zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
 
     zip_buffer.seek(0)
@@ -134,6 +135,7 @@ if uploaded_files:
         file_name=f"Word_to_PDF_{timestamp}.zip",
         mime="application/zip"
     )
+
 
 
 
