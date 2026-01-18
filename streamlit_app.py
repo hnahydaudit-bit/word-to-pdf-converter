@@ -13,7 +13,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- GLOBAL CSS ----------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
@@ -23,23 +23,24 @@ html, body, [data-testid="stApp"] {
     background-color: #f5f7fb;
 }
 
-/* CONTAINER */
+/* MAIN CONTAINER */
 .block-container {
-    padding-top: 1.2rem;
+    padding-top: 3.5rem;   /* ✅ IMPORTANT FIX */
     max-width: 720px;
 }
 
 /* HEADER */
 .app-header {
     text-align: center;
-    margin-bottom: 1.6rem;
+    margin-bottom: 1.8rem;
 }
 
 .app-title {
-    font-size: 1.9rem;
+    font-size: 2rem;
     font-weight: 600;
     color: #1a73e8;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.3rem;
+    line-height: 1.25;
 }
 
 .app-subtitle {
@@ -78,7 +79,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- FILE UPLOAD ----------------
+# ---------------- FILE UPLOADER ----------------
 uploaded_files = st.file_uploader(
     "Upload Word documents (.docx)",
     type=["docx"],
@@ -122,6 +123,7 @@ if uploaded_files:
         file_name=zip_filename,
         mime="application/zip"
     )
+
 
 
 
