@@ -1,13 +1,14 @@
 import streamlit as st
-import subprocess
-import tempfile
+from docx import Document
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 import zipfile
-from pathlib import Path
+import io
 
 st.set_page_config(page_title="Word to PDF Converter", layout="centered")
 
 st.title("📄 Word to PDF Converter")
-st.write("Upload Word files and download PDFs as a ZIP.")
+st.caption("Upload Word files → Get sequentially numbered PDFs")
 
 uploaded_files = st.file_uploader(
     "Upload .docx files",
@@ -16,38 +17,38 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir = Path(tmpdir)
+    zip_buffer = io.BytesIO()
 
-        # Save uploaded files
-        for file in uploaded_files:
-            (tmpdir / file.name).write_bytes(file.getbuffer())
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for idx, file in enumerate(uploaded_files, start=1):
+            doc = Document(file)
 
-        # Convert using LibreOffice
-        subprocess.run(
-            [
-                "soffice",
-                "--headless",
-                "--convert-to",
-                "pdf",
-                "--outdir",
-                str(tmpdir),
-            ]
-            + [str(tmpdir / f.name) for f in uploaded_files],
-            check=True,
-        )
+            pdf_buffer = io.BytesIO()
+            c = canvas.Canvas(pdf_buffer, pagesize=A4)
+            width, height = A4
 
-        # Create ZIP
-        zip_path = tmpdir / "converted_pdfs.zip"
-        with zipfile.ZipFile(zip_path, "w") as zipf:
-            for i, pdf in enumerate(sorted(tmpdir.glob("*.pdf")), start=1):
-                zipf.write(pdf, arcname=f"{i:03}.pdf")
+            y = height - 40
 
-        st.success("✅ Conversion successful!")
+            for para in doc.paragraphs:
+                if y < 40:
+                    c.showPage()
+                    y = height - 40
+                c.drawString(40, y, para.text)
+                y -= 14
 
-        st.download_button(
-            label="⬇️ Download ZIP",
-            data=zip_path.read_bytes(),
-            file_name="word_to_pdf.zip",
-            mime="application/zip",
-        )
+            c.save()
+            pdf_buffer.seek(0)
+
+            pdf_name = f"{idx:03}.pdf"
+            zipf.writestr(pdf_name, pdf_buffer.read())
+
+    zip_buffer.seek(0)
+
+    st.success("✅ Conversion complete")
+    st.download_button(
+        "⬇ Download ZIP",
+        zip_buffer,
+        file_name="converted_pdfs.zip",
+        mime="application/zip"
+    )
+
