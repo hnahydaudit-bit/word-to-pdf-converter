@@ -15,79 +15,74 @@ st.set_page_config(
 )
 
 # ---------------- CSS ----------------
-st.markdown(
-    """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+st.markdown("""
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
 
-    html, body, [data-testid="stApp"] {
-        background: linear-gradient(135deg, #f4f7fb 0%, #eef2ff 100%);
-    }
+html, body, [data-testid="stApp"] {
+    background-color: #f5f7fb;
+}
 
-    .block-container {
-        padding-top: 0.6rem;
-        max-width: 850px;
-    }
+/* MAIN CONTAINER */
+.block-container {
+    padding-top: 3.5rem;
+    max-width: 720px;
+}
 
-    /* SMALL HERO CARD */
-    .hero-box {
-        background: white;
-        border-radius: 10px;
-        padding: 0.6rem 1.2rem;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
-        text-align: center;
-        margin-bottom: 1rem;
-    }
+/* HEADER */
+.app-header {
+    text-align: center;
+    margin-bottom: 1.8rem;
+}
 
-    .hero-title {
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: #1a73e8;
-        margin: 0;
-        line-height: 1.2;
-    }
+.app-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a73e8;
+    margin-bottom: 0.3rem;
+    line-height: 1.25;
+}
 
-    .hero-subtitle {
-        color: #5f6368;
-        font-size: 0.82rem;
-        margin-top: 0.2rem;
-        line-height: 1.3;
-    }
+.app-subtitle {
+    font-size: 0.95rem;
+    color: #5f6368;
+}
 
-    .stDownloadButton button {
-        background: linear-gradient(135deg, #1a73e8, #4285f4);
-        color: white;
-        border-radius: 10px;
-        padding: 0.7rem 1.8rem;
-        font-size: 1rem;
-        border: none;
-    }
+/* SUCCESS MESSAGE */
+.stAlert {
+    border-radius: 10px;
+}
 
-    .stDownloadButton button:hover {
-        box-shadow: 0 6px 14px rgba(26,115,232,0.35);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+/* DOWNLOAD BUTTON */
+.stDownloadButton button {
+    background: #1a73e8;
+    color: white;
+    border-radius: 10px;
+    padding: 0.7rem 1.8rem;
+    font-size: 0.95rem;
+    border: none;
+}
 
-# ---------------- HERO ----------------
-st.markdown(
-    """
-    <div class="hero-box">
-        <div class="hero-title">Word to PDF Converter</div>
-        <div class="hero-subtitle">
-            Convert Word documents into sequentially numbered PDFs
-        </div>
+.stDownloadButton button:hover {
+    background: #1558c0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+st.markdown("""
+<div class="app-header">
+    <div class="app-title">Word to PDF Converter</div>
+    <div class="app-subtitle">
+        Convert Word documents into sequentially numbered PDFs
     </div>
-    """,
-    unsafe_allow_html=True
-)
+</div>
+""", unsafe_allow_html=True)
 
-# ---------------- UPLOAD ----------------
+# ---------------- FILE UPLOADER ----------------
 uploaded_files = st.file_uploader(
-    "📤 Upload Word documents (.docx)",
+    "Upload Word documents (.docx)",
     type=["docx"],
     accept_multiple_files=True
 )
@@ -125,16 +120,19 @@ if uploaded_files:
             zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
 
     zip_buffer.seek(0)
-    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
 
-    st.success("✅ Your PDFs are ready")
+    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
+    zip_filename = f"Word_to_PDF_{timestamp}.zip"
+
+    st.success("Your PDFs are ready")
 
     st.download_button(
-        label="⬇️ Download ZIP",
+        label="Download ZIP",
         data=zip_buffer,
-        file_name=f"Word_to_PDF_{timestamp}.zip",
+        file_name=zip_filename,
         mime="application/zip"
     )
+
 
 
 
