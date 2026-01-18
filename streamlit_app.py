@@ -5,14 +5,14 @@ from reportlab.pdfgen import canvas
 import zipfile
 import io
 
-# ------------------ PAGE CONFIG ------------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Word to PDF Converter",
     page_icon="📄",
     layout="centered"
 )
 
-# ------------------ GLOBAL CSS ------------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
@@ -23,50 +23,29 @@ html, body, [data-testid="stApp"] {
 }
 
 .block-container {
-    padding-top: 1rem;
-    padding-bottom: 2.5rem;
+    padding-top: 2rem;
 }
 
-/* HERO SECTION */
+/* HERO CARD */
 .hero-box {
-    background: linear-gradient(
-        145deg,
-        rgba(255,255,255,0.85),
-        rgba(255,255,255,0.95)
-    );
-    backdrop-filter: blur(10px);
-    border-radius: 22px;
-    padding: 3rem 2.2rem 2.4rem 2.2rem;
-    box-shadow: 
-        0 20px 40px rgba(0,0,0,0.08),
-        inset 0 1px 0 rgba(255,255,255,0.6);
-    margin-bottom: 2.8rem;
+    background: white;
+    border-radius: 24px;
+    padding: 3rem 2.5rem 2.5rem 2.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    text-align: center;
+    margin-bottom: 2.5rem;
 }
 
 .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.4rem;
     font-weight: 650;
     color: #1a73e8;
-    text-align: center;
     margin-bottom: 0.6rem;
-    letter-spacing: -0.3px;
 }
 
 .hero-subtitle {
-    text-align: center;
     color: #5f6368;
-    font-size: 1.08rem;
-}
-
-/* MAIN CARD */
-.main-card {
-    background: #ffffff;
-    padding: 2.4rem 3rem;
-    border-radius: 20px;
-    box-shadow:
-        0 16px 32px rgba(0,0,0,0.07);
-    max-width: 780px;
-    margin: auto;
+    font-size: 1.05rem;
 }
 
 /* DOWNLOAD BUTTON */
@@ -76,19 +55,18 @@ html, body, [data-testid="stApp"] {
     border-radius: 14px;
     padding: 0.85rem 2.2rem;
     font-size: 1.1rem;
-    font-weight: 500;
     border: none;
-    transition: all 0.2s ease-in-out;
+    transition: 0.2s;
 }
 
 .stDownloadButton button:hover {
-    transform: translateY(-1px);
     box-shadow: 0 10px 22px rgba(26,115,232,0.35);
+    transform: translateY(-1px);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ HERO HEADER ------------------
+# ---------------- HERO ----------------
 st.markdown("""
 <div class="hero-box">
     <div class="hero-title">Word to PDF Converter</div>
@@ -98,16 +76,14 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ------------------ MAIN CONTENT ------------------
-st.markdown('<div class="main-card">', unsafe_allow_html=True)
-
+# ---------------- UPLOAD ----------------
 uploaded_files = st.file_uploader(
     "📤 Upload Word documents (.docx)",
     type=["docx"],
     accept_multiple_files=True
 )
 
-# ------------------ PROCESSING ------------------
+# ---------------- PROCESS ----------------
 if uploaded_files:
     zip_buffer = io.BytesIO()
 
@@ -135,16 +111,14 @@ if uploaded_files:
     zip_buffer.seek(0)
 
     st.success("✅ Your PDFs are ready")
-    st.markdown("<br>", unsafe_allow_html=True)
 
     st.download_button(
-        label="⬇️  Download ZIP",
+        label="⬇️ Download ZIP",
         data=zip_buffer,
         file_name="converted_pdfs.zip",
         mime="application/zip"
     )
 
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 
