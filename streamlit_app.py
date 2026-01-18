@@ -4,6 +4,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import zipfile
 import io
+from datetime import datetime
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -23,44 +24,44 @@ html, body, [data-testid="stApp"] {
 }
 
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
 }
 
-/* HERO CARD */
+/* HERO CARD (MEDIUM SIZE) */
 .hero-box {
     background: white;
-    border-radius: 24px;
-    padding: 3rem 2.5rem 2.5rem 2.5rem;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 1.8rem 1.8rem 1.6rem 1.8rem;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.8rem;
 }
 
 .hero-title {
-    font-size: 2.4rem;
-    font-weight: 650;
+    font-size: 1.8rem;
+    font-weight: 600;
     color: #1a73e8;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
 }
 
 .hero-subtitle {
     color: #5f6368;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
 }
 
 /* DOWNLOAD BUTTON */
 .stDownloadButton button {
     background: linear-gradient(135deg, #1a73e8, #4285f4);
     color: white;
-    border-radius: 14px;
-    padding: 0.85rem 2.2rem;
-    font-size: 1.1rem;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
     border: none;
     transition: 0.2s;
 }
 
 .stDownloadButton button:hover {
-    box-shadow: 0 10px 22px rgba(26,115,232,0.35);
+    box-shadow: 0 8px 18px rgba(26,115,232,0.35);
     transform: translateY(-1px);
 }
 </style>
@@ -71,7 +72,7 @@ st.markdown("""
 <div class="hero-box">
     <div class="hero-title">Word to PDF Converter</div>
     <div class="hero-subtitle">
-        Convert Word documents into sequentially numbered PDFs — instantly
+        Convert Word documents into sequentially numbered PDFs
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -110,14 +111,19 @@ if uploaded_files:
 
     zip_buffer.seek(0)
 
+    # --------- DYNAMIC ZIP FILE NAME ---------
+    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
+    zip_filename = f"Word_to_PDF_{timestamp}.zip"
+
     st.success("✅ Your PDFs are ready")
 
     st.download_button(
         label="⬇️ Download ZIP",
         data=zip_buffer,
-        file_name="converted_pdfs.zip",
+        file_name=zip_filename,
         mime="application/zip"
     )
+
 
 
 
