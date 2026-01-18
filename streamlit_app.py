@@ -5,13 +5,74 @@ from reportlab.pdfgen import canvas
 import zipfile
 import io
 
-st.set_page_config(page_title="Word to PDF Converter", layout="centered")
+# ------------------ PAGE CONFIG ------------------
+st.set_page_config(
+    page_title="Word to PDF Converter",
+    page_icon="📄",
+    layout="centered"
+)
 
-st.title("📄 Word to PDF Converter")
-st.caption("Upload Word files → Get sequentially numbered PDFs")
+# ------------------ CUSTOM CSS ------------------
+st.markdown("""
+<style>
+body {
+    background-color: #ffffff;
+}
+
+.main-card {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    max-width: 720px;
+    margin: auto;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a73e8;
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #5f6368;
+    margin-bottom: 2rem;
+}
+
+.footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #80868b;
+    margin-top: 2rem;
+}
+
+.stDownloadButton button {
+    background-color: #1a73e8;
+    color: white;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+}
+
+.stDownloadButton button:hover {
+    background-color: #1558c0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ------------------ UI CARD ------------------
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
+
+st.markdown('<div class="title">Word to PDF Converter</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="subtitle">Convert Word documents into sequentially numbered PDFs — instantly</div>',
+    unsafe_allow_html=True
+)
 
 uploaded_files = st.file_uploader(
-    "Upload .docx files",
+    "📤 Upload Word documents (.docx)",
     type=["docx"],
     accept_multiple_files=True
 )
@@ -26,7 +87,6 @@ if uploaded_files:
             pdf_buffer = io.BytesIO()
             c = canvas.Canvas(pdf_buffer, pagesize=A4)
             width, height = A4
-
             y = height - 40
 
             for para in doc.paragraphs:
@@ -39,16 +99,23 @@ if uploaded_files:
             c.save()
             pdf_buffer.seek(0)
 
-            pdf_name = f"{idx:03}.pdf"
-            zipf.writestr(pdf_name, pdf_buffer.read())
+            zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
 
     zip_buffer.seek(0)
 
-    st.success("✅ Conversion complete")
+    st.success("✅ Your PDFs are ready")
     st.download_button(
         "⬇ Download ZIP",
         zip_buffer,
         file_name="converted_pdfs.zip",
         mime="application/zip"
     )
+
+st.markdown(
+    '<div class="footer">🔒 Files are processed securely and never stored.</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
 
