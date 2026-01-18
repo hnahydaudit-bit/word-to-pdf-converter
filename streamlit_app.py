@@ -1,126 +1,89 @@
+# app.py
+# Improved Word (.docx) to PDF converter
+# Preserves alignment, spacing, and paragraphs better
+
 import streamlit as st
 from docx import Document
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-import zipfile
+from reportlab.lib.units import inch
 import io
-from datetime import datetime
+import zipfile
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="Word to PDF Converter",
-    page_icon="📄",
-    layout="centered"
-)
+st.set_page_config(page_title="Word to PDF Converter", layout="centered")
 
-# ---------------- CSS ----------------
-st.markdown("""
-<style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+st.title("Word to PDF Converter")
+st.write("Convert Word documents into properly formatted PDFs")
 
-html, body, [data-testid="stApp"] {
-    background-color: #f5f7fb;
-}
-
-/* MAIN CONTAINER */
-.block-container {
-    padding-top: 3.5rem;   /* ✅ IMPORTANT FIX */
-    max-width: 720px;
-}
-
-/* HEADER */
-.app-header {
-    text-align: center;
-    margin-bottom: 1.8rem;
-}
-
-.app-title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1a73e8;
-    margin-bottom: 0.3rem;
-    line-height: 1.25;
-}
-
-.app-subtitle {
-    font-size: 0.95rem;
-    color: #5f6368;
-}
-
-/* SUCCESS MESSAGE */
-.stAlert {
-    border-radius: 10px;
-}
-
-/* DOWNLOAD BUTTON */
-.stDownloadButton button {
-    background: #1a73e8;
-    color: white;
-    border-radius: 10px;
-    padding: 0.7rem 1.8rem;
-    font-size: 0.95rem;
-    border: none;
-}
-
-.stDownloadButton button:hover {
-    background: #1558c0;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------- HEADER ----------------
-st.markdown("""
-<div class="app-header">
-    <div class="app-title">Word to PDF Converter</div>
-    <div class="app-subtitle">
-        Convert Word documents into sequentially numbered PDFs
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ---------------- FILE UPLOADER ----------------
 uploaded_files = st.file_uploader(
     "Upload Word documents (.docx)",
     type=["docx"],
     accept_multiple_files=True
 )
 
-# ---------------- PROCESS ----------------
+
+def convert_docx_to_pdf(docx_file):
+    # Read Word file
+    document = Document(docx_file)
+
+    # Create PDF in memory
+    pdf_buffer = io.BytesIO()
+    pdf = SimpleDocTemplate(
+        pdf_buffer,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40
+    )
+
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=14,
+        spaceAfter=8
+    )
+
+    story = []
+
+    # Loop through Word paragraphs
+    for para in document.paragraphs:
+        text = para.text.strip()
+
+        if not text:
+            story.append(Spacer(1, 10))
+        else:
+            story.append(Paragraph(text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), normal_style))
+
+    pdf.build(story)
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
+
+
 if uploaded_files:
+    pdf_files = []
+
+    for file in uploaded_files:
+        pdf_buffer = convert_docx_to_pdf(file)
+        pdf_files.append((file.name.replace(".docx", ".pdf"), pdf_buffer.getvalue()))
+
+    # Create ZIP
     zip_buffer = io.BytesIO()
-
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for idx, file in enumerate(uploaded_files, start=1):
-            doc = Document(file)
-
-            pdf_buffer = io.BytesIO()
-            c = canvas.Canvas(pdf_buffer, pagesize=A4)
-            width, height = A4
-            y = height - 40
-
-            for para in doc.paragraphs:
-                if y < 40:
-                    c.showPage()
-                    y = height - 40
-                c.drawString(40, y, para.text)
-                y -= 14
-
-            c.save()
-            pdf_buffer.seek(0)
-            zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for name, data in pdf_files:
+            zip_file.writestr(name, data)
 
     zip_buffer.seek(0)
 
-    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
-    zip_filename = f"Word_to_PDF_{timestamp}.zip"
-
     st.success("Your PDFs are ready")
-
     st.download_button(
-        label="Download ZIP",
+        label="Download PDFs",
         data=zip_buffer,
-        file_name=zip_filename,
+        file_name="converted_pdfs.zip",
         mime="application/zip"
     )
 
