@@ -127,11 +127,12 @@ if uploaded_files:
     st.success("Your PDFs are ready")
 
     st.download_button(
-        label="Download ZIP",
+        label="⬇ Download ZIP",
         data=zip_buffer,
         file_name=zip_filename,
         mime="application/zip"
     )
+
 
 
 
