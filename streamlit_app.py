@@ -12,48 +12,55 @@ st.set_page_config(
     layout="centered"
 )
 
-# ------------------ CUSTOM CSS ------------------
+# ------------------ REMOVE DEFAULT STREAMLIT SPACING ------------------
 st.markdown("""
 <style>
-body {
-    background-color: #ffffff;
-}
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+footer {visibility: hidden;}
 
+.block-container {
+    padding-top: 1.2rem;
+    padding-bottom: 2rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ------------------ CUSTOM GOOGLE-STYLE UI ------------------
+st.markdown("""
+<style>
 .main-card {
     background-color: #ffffff;
-    padding: 2.5rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-    max-width: 720px;
+    padding: 2.6rem 3.2rem;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    max-width: 760px;
     margin: auto;
 }
 
 .title {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 600;
     color: #1a73e8;
     text-align: center;
+    margin-bottom: 0.4rem;
 }
 
 .subtitle {
     text-align: center;
     color: #5f6368;
-    margin-bottom: 2rem;
-}
-
-.footer {
-    text-align: center;
-    font-size: 0.85rem;
-    color: #80868b;
-    margin-top: 2rem;
+    font-size: 1rem;
+    margin-bottom: 2.2rem;
 }
 
 .stDownloadButton button {
     background-color: #1a73e8;
     color: white;
-    border-radius: 8px;
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
+    border-radius: 12px;
+    padding: 0.75rem 1.8rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    border: none;
 }
 
 .stDownloadButton button:hover {
@@ -62,7 +69,7 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ UI CARD ------------------
+# ------------------ MAIN UI CARD ------------------
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
 st.markdown('<div class="title">Word to PDF Converter</div>', unsafe_allow_html=True)
@@ -77,6 +84,7 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
+# ------------------ PROCESSING ------------------
 if uploaded_files:
     zip_buffer = io.BytesIO()
 
@@ -104,18 +112,16 @@ if uploaded_files:
     zip_buffer.seek(0)
 
     st.success("✅ Your PDFs are ready")
+    st.markdown("<br>", unsafe_allow_html=True)
+
     st.download_button(
-        "⬇ Download ZIP",
-        zip_buffer,
+        label="⬇️  Download ZIP",
+        data=zip_buffer,
         file_name="converted_pdfs.zip",
         mime="application/zip"
     )
 
-st.markdown(
-    '<div class="footer">🔒 Files are processed securely and never stored.</div>',
-    unsafe_allow_html=True
-)
-
 st.markdown('</div>', unsafe_allow_html=True)
+
 
 
