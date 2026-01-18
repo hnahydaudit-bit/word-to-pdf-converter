@@ -12,71 +12,94 @@ st.set_page_config(
     layout="centered"
 )
 
-# ------------------ REMOVE DEFAULT STREAMLIT SPACING ------------------
+# ------------------ GLOBAL CSS ------------------
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
-header {visibility: hidden;}
 footer {visibility: hidden;}
 
-.block-container {
-    padding-top: 1.2rem;
-    padding-bottom: 2rem;
+html, body, [data-testid="stApp"] {
+    background: linear-gradient(135deg, #f4f7fb 0%, #eef2ff 100%);
 }
-</style>
-""", unsafe_allow_html=True)
 
-# ------------------ CUSTOM GOOGLE-STYLE UI ------------------
-st.markdown("""
-<style>
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 2.5rem;
+}
+
+/* HERO SECTION */
+.hero-box {
+    background: linear-gradient(
+        145deg,
+        rgba(255,255,255,0.85),
+        rgba(255,255,255,0.95)
+    );
+    backdrop-filter: blur(10px);
+    border-radius: 22px;
+    padding: 3rem 2.2rem 2.4rem 2.2rem;
+    box-shadow: 
+        0 20px 40px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    margin-bottom: 2.8rem;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 650;
+    color: #1a73e8;
+    text-align: center;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.3px;
+}
+
+.hero-subtitle {
+    text-align: center;
+    color: #5f6368;
+    font-size: 1.08rem;
+}
+
+/* MAIN CARD */
 .main-card {
-    background-color: #ffffff;
-    padding: 2.6rem 3.2rem;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-    max-width: 760px;
+    background: #ffffff;
+    padding: 2.4rem 3rem;
+    border-radius: 20px;
+    box-shadow:
+        0 16px 32px rgba(0,0,0,0.07);
+    max-width: 780px;
     margin: auto;
 }
 
-.title {
-    font-size: 2.2rem;
-    font-weight: 600;
-    color: #1a73e8;
-    text-align: center;
-    margin-bottom: 0.4rem;
-}
-
-.subtitle {
-    text-align: center;
-    color: #5f6368;
-    font-size: 1rem;
-    margin-bottom: 2.2rem;
-}
-
+/* DOWNLOAD BUTTON */
 .stDownloadButton button {
-    background-color: #1a73e8;
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
     color: white;
-    border-radius: 12px;
-    padding: 0.75rem 1.8rem;
-    font-size: 1.05rem;
+    border-radius: 14px;
+    padding: 0.85rem 2.2rem;
+    font-size: 1.1rem;
     font-weight: 500;
     border: none;
+    transition: all 0.2s ease-in-out;
 }
 
 .stDownloadButton button:hover {
-    background-color: #1558c0;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(26,115,232,0.35);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ MAIN UI CARD ------------------
-st.markdown('<div class="main-card">', unsafe_allow_html=True)
+# ------------------ HERO HEADER ------------------
+st.markdown("""
+<div class="hero-box">
+    <div class="hero-title">Word to PDF Converter</div>
+    <div class="hero-subtitle">
+        Convert Word documents into sequentially numbered PDFs — instantly
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown('<div class="title">Word to PDF Converter</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="subtitle">Convert Word documents into sequentially numbered PDFs — instantly</div>',
-    unsafe_allow_html=True
-)
+# ------------------ MAIN CONTENT ------------------
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
 uploaded_files = st.file_uploader(
     "📤 Upload Word documents (.docx)",
@@ -122,6 +145,7 @@ if uploaded_files:
     )
 
 st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
