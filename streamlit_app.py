@@ -24,18 +24,20 @@ html, body, [data-testid="stApp"] {
     background: linear-gradient(135deg, #f4f7fb 0%, #eef2ff 100%);
 }
 
+/* FIXED TOP SPACING */
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.2rem;
     max-width: 850px;
 }
 
-/* HERO CARD */
+/* HERO CARD (POSITION FIXED) */
 .hero-box {
     background: white;
     border-radius: 20px;
     padding: 2rem 2rem 1.8rem 2rem;
     box-shadow: 0 15px 30px rgba(0,0,0,0.08);
     text-align: center;
+    margin-top: 0;
     margin-bottom: 2rem;
 }
 
@@ -119,7 +121,6 @@ if uploaded_files:
 
     zip_buffer.seek(0)
 
-    # ZIP filename with date & time
     timestamp = datetime.now().strftime("%d%m%Y_%H%M")
     zip_filename = f"Word_to_PDF_{timestamp}.zip"
 
@@ -131,6 +132,7 @@ if uploaded_files:
         file_name=zip_filename,
         mime="application/zip"
     )
+
 
 
 
