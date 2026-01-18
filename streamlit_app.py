@@ -15,59 +15,126 @@ st.set_page_config(
 )
 
 # ---------------- CSS ----------------
-st.markdown("""
-<style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+st.markdown(
+    """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
 
-html, body, [data-testid="stApp"] {
-    background: linear-gradient(135deg, #f4f7fb 0%, #eef2ff 100%);
-}
+    html, body, [data-testid="stApp"] {
+        background: linear-gradient(135deg, #f4f7fb 0%, #eef2ff 100%);
+    }
 
-/* PAGE WIDTH & TOP GAP */
-.block-container {
-    padding-top: 1rem;
-    max-width: 850px;
-}
+    .block-container {
+        padding-top: 1rem;
+        max-width: 850px;
+    }
 
-/* HERO CARD — SIZE FIXED */
-.hero-box {
-    background: white;
-    border-radius: 16px;
-    padding: 1.3rem 1.8rem 1.2rem 1.8rem;  /* ⬅ reduced */
-    box-shadow: 0 12px 26px rgba(0,0,0,0.07);
-    text-align: center;
-    margin-bottom: 1.6rem;
-}
+    /* HERO CARD */
+    .hero-box {
+        background: white;
+        border-radius: 16px;
+        padding: 1.3rem 1.8rem 1.2rem 1.8rem;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.07);
+        text-align: center;
+        margin-bottom: 1.6rem;
+    }
 
-.hero-title {
-    font-size: 1.7rem;   /* ⬅ reduced */
-    font-weight: 600;
-    color: #1a73e8;
-    margin-bottom: 0.25rem;
-}
+    .hero-title {
+        font-size: 1.7rem;
+        font-weight: 600;
+        color: #1a73e8;
+        margin-bottom: 0.25rem;
+    }
 
-.hero-subtitle {
-    color: #5f6368;
-    font-size: 0.95rem;  /* ⬅ reduced */
-    line-height: 1.4;
-}
+    .hero-subtitle {
+        color: #5f6368;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
 
-/* DOWNLOAD BUTTON */
-.stDownloadButton button {
-    background: linear-gradient(135deg, #1a73e8, #4285f4);
-    color: white;
-    border-radius: 12px;
-    padding: 0.75rem 1.9rem;
-    font-size: 1.05rem;
-    border: none;
-}
+    .stDownloadButton button {
+        background: linear-gradient(135deg, #1a73e8, #4285f4);
+        color: white;
+        border-radius: 12px;
+        padding: 0.75rem 1.9rem;
+        font-size: 1.05rem;
+        border: none;
+    }
 
-.stDownloadButton button:hover {
-    box-shadow: 0 8px 18px rgba(26,115,232,0.35);
-}
-</style>
-""", unsafe_al_
+    .stDownloadButton button:hover {
+        box-shadow: 0 8px 18px rgba(26,115,232,0.35);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- HERO ----------------
+st.markdown(
+    """
+    <div class="hero-box">
+        <div class="hero-title">Word to PDF Converter</div>
+        <div class="hero-subtitle">
+            Convert Word documents into sequentially numbered PDFs
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- UPLOAD ----------------
+uploaded_files = st.file_uploader(
+    "📤 Upload Word documents (.docx)",
+    type=["docx"],
+    accept_multiple_files=True
+)
+
+# ---------------- PROCESS ----------------
+if uploaded_files:
+    zip_buffer = io.BytesIO()
+    styles = getSampleStyleSheet()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for idx, file in enumerate(uploaded_files, start=1):
+            doc = Document(file)
+
+            pdf_buffer = io.BytesIO()
+            pdf = SimpleDocTemplate(
+                pdf_buffer,
+                pagesize=A4,
+                rightMargin=40,
+                leftMargin=40,
+                topMargin=40,
+                bottomMargin=40
+            )
+
+            elements = []
+
+            for para in doc.paragraphs:
+                if para.text.strip():
+                    elements.append(Paragraph(para.text, styles["Normal"]))
+                    elements.append(Spacer(1, 12))
+                else:
+                    elements.append(Spacer(1, 12))
+
+            pdf.build(elements)
+            pdf_buffer.seek(0)
+
+            zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
+
+    zip_buffer.seek(0)
+    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
+
+    st.success("✅ Your PDFs are ready")
+
+    st.download_button(
+        label="⬇️ Download ZIP",
+        data=zip_buffer,
+        file_name=f"Word_to_PDF_{timestamp}.zip",
+        mime="application/zip"
+    )
+
 
 
 
