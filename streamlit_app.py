@@ -1,26 +1,44 @@
 import streamlit as st
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import pikepdf
-from docx2pdf import convert
 import tempfile
 import os
+import platform
 
-st.set_page_config(page_title="PDF Utility Tool", layout="centered")
+# Try importing docx2pdf safely
+try:
+    from docx2pdf import convert
+    DOCX_AVAILABLE = True
+except Exception:
+    DOCX_AVAILABLE = False
+
+# -------------------------------------------------
+# PAGE CONFIG
+# -------------------------------------------------
+st.set_page_config(
+    page_title="PDF Utility Tool",
+    layout="centered"
+)
 
 st.title("📄 PDF Utility Tool")
-st.caption("All processing happens locally on your system")
+st.caption("All processing happens locally. No files are stored.")
 
+# -------------------------------------------------
+# OPTION SELECTOR
+# -------------------------------------------------
 option = st.selectbox(
     "Choose an option",
-    [
+    (
         "Merge PDFs",
         "Split PDF",
         "Compress PDF",
         "Convert Word to PDF"
-    ]
+    )
 )
 
-# ---------------- MERGE PDFs ----------------
+# -------------------------------------------------
+# MERGE PDFs
+# -------------------------------------------------
 if option == "Merge PDFs":
     st.subheader("Merge Multiple PDFs")
 
@@ -48,21 +66,37 @@ if option == "Merge PDFs":
                     mime="application/pdf"
                 )
 
-# ---------------- SPLIT PDF ----------------
+# -------------------------------------------------
+# SPLIT PDF
+# -------------------------------------------------
 elif option == "Split PDF":
     st.subheader("Split PDF by Page Range")
 
     uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 
     if uploaded_file:
-        start = st.number_input("Start page", min_value=1, value=1)
-        end = st.number_input("End page", min_value=1, value=1)
+        reader = PdfReader(uploaded_file)
+        total_pages = len(reader.pages)
+
+        st.info(f"Total pages: {total_pages}")
+
+        start_page = st.number_input(
+            "Start page",
+            min_value=1,
+            max_value=total_pages,
+            value=1
+        )
+        end_page = st.number_input(
+            "End page",
+            min_value=1,
+            max_value=total_pages,
+            value=total_pages
+        )
 
         if st.button("Split PDF"):
-            reader = PdfReader(uploaded_file)
             writer = PdfWriter()
 
-            for i in range(int(start) - 1, int(end)):
+            for i in range(int(start_page) - 1, int(end_page)):
                 writer.add_page(reader.pages[i])
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -76,7 +110,9 @@ elif option == "Split PDF":
                         mime="application/pdf"
                     )
 
-# ---------------- COMPRESS PDF ----------------
+# -------------------------------------------------
+# COMPRESS PDF
+# -------------------------------------------------
 elif option == "Compress PDF":
     st.subheader("Compress PDF (Best for text-only PDFs)")
 
@@ -99,29 +135,42 @@ elif option == "Compress PDF":
                 mime="application/pdf"
             )
 
-# ---------------- WORD TO PDF ----------------
+# -------------------------------------------------
+# WORD TO PDF (OS SAFE)
+# -------------------------------------------------
 elif option == "Convert Word to PDF":
     st.subheader("Convert Word to PDF")
 
     uploaded_file = st.file_uploader("Upload Word file", type=["docx"])
+    os_name = platform.system()
 
-    if uploaded_file and st.button("Convert"):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            word_path = os.path.join(tmpdir, uploaded_file.name)
-            pdf_path = word_path.replace(".docx", ".pdf")
+    if uploaded_file:
+        if os_name == "Linux":
+            st.warning(
+                "⚠️ Word to PDF conversion is not supported on Streamlit Cloud.\n\n"
+                "Run this app locally on Windows or macOS with Microsoft Word installed."
+            )
+        elif not DOCX_AVAILABLE:
+            st.error("docx2pdf is not available in this environment.")
+        else:
+            if st.button("Convert"):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    word_path = os.path.join(tmpdir, uploaded_file.name)
+                    pdf_path = word_path.replace(".docx", ".pdf")
 
-            with open(word_path, "wb") as f:
-                f.write(uploaded_file.read())
+                    with open(word_path, "wb") as f:
+                        f.write(uploaded_file.read())
 
-            convert(word_path, pdf_path)
+                    convert(word_path, pdf_path)
 
-            with open(pdf_path, "rb") as f:
-                st.download_button(
-                    "Download PDF",
-                    f,
-                    file_name="converted.pdf",
-                    mime="application/pdf"
-                )
+                    with open(pdf_path, "rb") as f:
+                        st.download_button(
+                            "Download PDF",
+                            f,
+                            file_name="converted.pdf",
+                            mime="application/pdf"
+                        )
+
 
 
 
