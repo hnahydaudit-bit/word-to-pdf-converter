@@ -1,137 +1,128 @@
 import streamlit as st
-from docx import Document
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
-import zipfile
-import io
-from datetime import datetime
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
+import pikepdf
+from docx2pdf import convert
+import tempfile
+import os
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="Word to PDF Converter",
-    page_icon="📄",
-    layout="centered"
+st.set_page_config(page_title="PDF Utility Tool", layout="centered")
+
+st.title("📄 PDF Utility Tool")
+st.caption("All processing happens locally on your system")
+
+option = st.selectbox(
+    "Choose an option",
+    [
+        "Merge PDFs",
+        "Split PDF",
+        "Compress PDF",
+        "Convert Word to PDF"
+    ]
 )
 
-# ---------------- CSS ----------------
-st.markdown("""
-<style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+# ---------------- MERGE PDFs ----------------
+if option == "Merge PDFs":
+    st.subheader("Merge Multiple PDFs")
 
-html, body, [data-testid="stApp"] {
-    background-color: #f5f7fb;
-}
+    uploaded_files = st.file_uploader(
+        "Upload PDF files",
+        type="pdf",
+        accept_multiple_files=True
+    )
 
-/* MAIN CONTAINER */
-.block-container {
-    padding-top: 3.5rem;
-    max-width: 720px;
-}
+    if st.button("Merge PDFs") and uploaded_files:
+        merger = PdfMerger()
 
-/* HEADER */
-.app-header {
-    text-align: center;
-    margin-bottom: 1.8rem;
-}
+        for pdf in uploaded_files:
+            merger.append(pdf)
 
-.app-title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1a73e8;
-    margin-bottom: 0.3rem;
-    line-height: 1.25;
-}
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            merger.write(tmp.name)
+            merger.close()
 
-.app-subtitle {
-    font-size: 0.95rem;
-    color: #5f6368;
-}
+            with open(tmp.name, "rb") as f:
+                st.download_button(
+                    "Download Merged PDF",
+                    f,
+                    file_name="merged.pdf",
+                    mime="application/pdf"
+                )
 
-/* SUCCESS MESSAGE */
-.stAlert {
-    border-radius: 10px;
-}
+# ---------------- SPLIT PDF ----------------
+elif option == "Split PDF":
+    st.subheader("Split PDF by Page Range")
 
-/* DOWNLOAD BUTTON */
-.stDownloadButton button {
-    background: #1a73e8;
-    color: white;
-    border-radius: 10px;
-    padding: 0.7rem 1.8rem;
-    font-size: 0.95rem;
-    border: none;
-}
+    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 
-.stDownloadButton button:hover {
-    background: #1558c0;
-}
-</style>
-""", unsafe_allow_html=True)
+    if uploaded_file:
+        start = st.number_input("Start page", min_value=1, value=1)
+        end = st.number_input("End page", min_value=1, value=1)
 
-# ---------------- HEADER ----------------
-st.markdown("""
-<div class="app-header">
-    <div class="app-title">Word to PDF Converter</div>
-    <div class="app-subtitle">
-        Convert Word documents into sequentially numbered PDFs
-    </div>
-</div>
-""", unsafe_allow_html=True)
+        if st.button("Split PDF"):
+            reader = PdfReader(uploaded_file)
+            writer = PdfWriter()
 
-# ---------------- FILE UPLOADER ----------------
-uploaded_files = st.file_uploader(
-    "Upload Word documents (.docx)",
-    type=["docx"],
-    accept_multiple_files=True
-)
+            for i in range(int(start) - 1, int(end)):
+                writer.add_page(reader.pages[i])
 
-# ---------------- PROCESS ----------------
-if uploaded_files:
-    zip_buffer = io.BytesIO()
-    styles = getSampleStyleSheet()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                writer.write(tmp.name)
 
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for idx, file in enumerate(uploaded_files, start=1):
-            doc = Document(file)
+                with open(tmp.name, "rb") as f:
+                    st.download_button(
+                        "Download Split PDF",
+                        f,
+                        file_name="split.pdf",
+                        mime="application/pdf"
+                    )
 
-            pdf_buffer = io.BytesIO()
-            pdf = SimpleDocTemplate(
-                pdf_buffer,
-                pagesize=A4,
-                rightMargin=40,
-                leftMargin=40,
-                topMargin=40,
-                bottomMargin=40
+# ---------------- COMPRESS PDF ----------------
+elif option == "Compress PDF":
+    st.subheader("Compress PDF (Best for text-only PDFs)")
+
+    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+
+    if uploaded_file and st.button("Compress PDF"):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as input_tmp:
+            input_tmp.write(uploaded_file.read())
+
+        output_path = input_tmp.name.replace(".pdf", "_compressed.pdf")
+
+        with pikepdf.open(input_tmp.name) as pdf:
+            pdf.save(output_path, optimize_streams=True)
+
+        with open(output_path, "rb") as f:
+            st.download_button(
+                "Download Compressed PDF",
+                f,
+                file_name="compressed.pdf",
+                mime="application/pdf"
             )
 
-            elements = []
+# ---------------- WORD TO PDF ----------------
+elif option == "Convert Word to PDF":
+    st.subheader("Convert Word to PDF")
 
-            for para in doc.paragraphs:
-                if para.text.strip():
-                    elements.append(Paragraph(para.text, styles["Normal"]))
-                    elements.append(Spacer(1, 12))
-                else:
-                    elements.append(Spacer(1, 12))
+    uploaded_file = st.file_uploader("Upload Word file", type=["docx"])
 
-            pdf.build(elements)
-            pdf_buffer.seek(0)
-            zipf.writestr(f"{idx:03}.pdf", pdf_buffer.read())
+    if uploaded_file and st.button("Convert"):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            word_path = os.path.join(tmpdir, uploaded_file.name)
+            pdf_path = word_path.replace(".docx", ".pdf")
 
-    zip_buffer.seek(0)
+            with open(word_path, "wb") as f:
+                f.write(uploaded_file.read())
 
-    timestamp = datetime.now().strftime("%d%m%Y_%H%M")
-    zip_filename = f"Word_to_PDF_{timestamp}.zip"
+            convert(word_path, pdf_path)
 
-    st.success("Your PDFs are ready")
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    "Download PDF",
+                    f,
+                    file_name="converted.pdf",
+                    mime="application/pdf"
+                )
 
-    st.download_button(
-        label="⬇ Download ZIP",
-        data=zip_buffer,
-        file_name=zip_filename,
-        mime="application/zip"
-    )
 
 
 
